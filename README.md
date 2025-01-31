@@ -1,4 +1,4 @@
-# deepseek-offline README
+# deepseek-offline
 
 The "deepseek-offline" extension allows you to run the DeepSeek R1 model locally in VS Code, enabling offline chat interactions with the model for tasks such as deep learning and AI research.
 
