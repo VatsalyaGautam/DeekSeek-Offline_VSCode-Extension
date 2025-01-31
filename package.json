@@ -4,7 +4,7 @@
   "displayName": "DeepSeek Offline",
   "description": "",
   "icon": "images/iconDeepSeekOffline.png",
-  "version": "1.0.2",
+  "version": "1.1.2",
   "engines": {
     "vscode": "^1.96.0"
   },

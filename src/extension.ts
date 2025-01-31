@@ -35,7 +35,8 @@ export function activate(context: vscode.ExtensionContext) {
   });
 }
 function getWebviewContent(): string {
-  return `
+  return  `
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -216,25 +217,7 @@ function getWebviewContent(): string {
             border-radius: 16px;
         }
 
-        #prompt {
-            width: 100%;
-            min-height: 120px;
-            padding: 1.25rem;
-            background: var(--github-dark);
-            color: var(--github-text);
-            border: 1px solid var(--github-border);
-            border-radius: 12px;
-            font-size: 15px;
-            resize: vertical;
-            transition: all var(--transition-normal);
-            line-height: 1.6;
-        }
-
-        #prompt:focus {
-            outline: none;
-            border-color: var(--github-link);
-            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
-        }
+     
 
         .button-container {
             display: flex;
@@ -444,6 +427,51 @@ function getWebviewContent(): string {
 			#mainlogo{
 			width: 85%;;
 			}
+            #prompt {
+            width: 100%;
+            height: auto;
+            padding: 1.25rem;
+            background: var(--github-dark);
+            color: var(--github-text);
+            border: 1px solid var(--github-border);
+            border-radius: 12px;
+            font-size: 15px;
+            resize: none;
+            transition: all var(--transition-normal);
+            line-height: 1.6;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            letter-spacing: 0.3px;
+            white-space: pre-wrap;
+            overflow: hidden;
+        }
+
+        #prompt::placeholder {
+            color: rgba(201, 209, 217, 0.5);
+            font-style: normal;
+            transition: all var(--transition-normal);
+            white-space: pre-line;
+        }
+
+        #prompt:hover {
+            border-color: rgba(88, 166, 255, 0.4);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1),
+                        0 0 0 1px rgba(88, 166, 255, 0.1);
+        }
+
+        #prompt:focus {
+            outline: none;
+            border-color: var(--github-link);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1),
+                        0 0 0 3px rgba(88, 166, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        #prompt:focus::placeholder {
+            opacity: 0.7;
+            transform: translateX(4px);
+        }
     </style>
 </head>
 <body>
@@ -461,9 +489,19 @@ function getWebviewContent(): string {
             <div class="input-container">
                 <textarea 
                     id="prompt" 
-                    placeholder="Ask anything... Your AI assistant is ready to help!"
+                    placeholder="Ask anything... Your AI assistant is ready to help!
+
+                    ⚠️ Important Setup Steps:
+
+1. Install Ollama: npm install ollama -g
+2. Run the Model: ollama run deepseek-r1:1.5b
+3. Serve the Model: ollama serve
+
+Keep Ollama running while using this extension!
+                    "
                     autofocus
                 ></textarea>
+                
                 <div class="button-container">
                     <button id="askBtn">Send Message</button>
                 </div>
@@ -489,70 +527,107 @@ function getWebviewContent(): string {
 
     <script>
        const vscode = acquireVsCodeApi();
-const loading = document.querySelector('.loading');
-const responseDiv = document.getElementById('response');
-const promptArea = document.getElementById('prompt');
-const statusText = document.querySelector('.status-text');
-const statusIndicator = document.querySelector('.status-indicator');
+       const loading = document.querySelector('.loading');
+        const responseDiv = document.getElementById('response');
+        const promptArea = document.getElementById('prompt');
+        const statusText = document.querySelector('.status-text');
+        const statusIndicator = document.querySelector('.status-indicator');
 
-let isProcessing = false;
+        // Create hidden div for measuring text height
+        const heightMeasurer = document.createElement('div');
+        heightMeasurer.style.cssText = \`
+            visibility: hidden;
+            position: absolute;
+            width: \${promptArea.clientWidth}px;
+            min-height: auto;
+            padding: \${getComputedStyle(promptArea).padding};
+            border: \${getComputedStyle(promptArea).border};
+            font: \${getComputedStyle(promptArea).font};
+            line-height: \${getComputedStyle(promptArea).lineHeight};
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        \`;
+        document.body.appendChild(heightMeasurer);
 
-document.getElementById('askBtn').addEventListener('click', sendMessage);
+        // Function to update textarea height
+        function updateHeight() {
+            const content = promptArea.value || promptArea.placeholder;
+            heightMeasurer.innerText = content;
+            promptArea.style.height = 'auto';
+            promptArea.style.height = \`\${heightMeasurer.scrollHeight}px\`;
+        }
 
-function sendMessage() {
-    if (isProcessing) return;
+        // Initialize height
+        window.addEventListener('load', updateHeight);
+        
+        // Update height on input
+        promptArea.addEventListener('input', updateHeight);
+        
+        // Update on window resize
+        window.addEventListener('resize', () => {
+            heightMeasurer.style.width = \`\${promptArea.clientWidth}px\`;
+            updateHeight();
+        });
 
-    const text = promptArea.value.trim();
-    if (!text) return;
-    
-    isProcessing = true;
-    loading.style.display = 'flex';
-    responseDiv.style.opacity = '0';
-    statusText.textContent = 'Processing your request...';
-    statusIndicator.style.background = 'var(--github-warning)';
-    
-    vscode.postMessage({ command: 'chat', text });
-}
+        let isProcessing = false;
 
-window.addEventListener('message', event => {
-    const { command, text } = event.data;
-    if (command === 'chatResponse') {
-        isProcessing = false;
-        loading.style.display = 'none';
-        responseDiv.innerText = text;
-        responseDiv.style.opacity = '1';
-        statusText.textContent = 'AI Assistant Ready';
-        statusIndicator.style.background = 'var(--github-success)';
+        document.getElementById('askBtn').addEventListener('click', sendMessage);
 
-        // Clear input after successful response
-        promptArea.value = '';
-        promptArea.style.height = 'auto';
-    }
-});
+        function sendMessage() {
+            if (isProcessing) return;
 
-// Auto-resize textarea
-promptArea.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = (this.scrollHeight) + 'px';
-});
+            const text = promptArea.value.trim();
+            if (!text) return;
+            
+            isProcessing = true;
+            loading.style.display = 'flex';
+            responseDiv.style.opacity = '0';
+            statusText.textContent = 'Processing your request...';
+            statusIndicator.style.background = 'var(--github-warning)';
+            
+            vscode.postMessage({ command: 'chat', text });
+        }
 
-// Enhanced button animation
-const askBtn = document.getElementById('askBtn');
-askBtn.addEventListener('mousedown', () => {
-    askBtn.style.transform = 'scale(0.98) translateY(1px)';
-});
-askBtn.addEventListener('mouseup', () => {
-    askBtn.style.transform = 'scale(1) translateY(-2px)';
-});
-askBtn.addEventListener('mouseleave', () => {
-    askBtn.style.transform = 'scale(1) translateY(-2px)';
-});
+        window.addEventListener('message', event => {
+            const { command, text } = event.data;
+            if (command === 'chatResponse') {
+                isProcessing = false;
+                loading.style.display = 'none';
+                responseDiv.innerText = text;
+                responseDiv.style.opacity = '1';
+                statusText.textContent = 'AI Assistant Ready';
+                statusIndicator.style.background = 'var(--github-success)';
 
-// Initial status
-setTimeout(() => {
-    statusText.textContent = 'AI Assistant Ready';
-    statusIndicator.style.background = 'var(--github-success)';
-}, 1000);
+                promptArea.value = '';
+                updateHeight();
+            }
+        });
+
+        // Enhanced button animation
+        const askBtn = document.getElementById('askBtn');
+        askBtn.addEventListener('mousedown', () => {
+            askBtn.style.transform = 'scale(0.98) translateY(1px)';
+        });
+        askBtn.addEventListener('mouseup', () => {
+            askBtn.style.transform = 'scale(1) translateY(-2px)';
+        });
+        askBtn.addEventListener('mouseleave', () => {
+            askBtn.style.transform = 'scale(1) translateY(-2px)';
+        });
+
+        // Clean up
+        window.addEventListener('unload', () => {
+            heightMeasurer.remove();
+        });
+
+        // Initial status
+        setTimeout(() => {
+            statusText.textContent = 'AI Assistant Ready';
+            statusIndicator.style.background = 'var(--github-success)';
+        }, 1000);
+</script>
+</body>
+</html>
 `;
 }
 
