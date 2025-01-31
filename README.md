@@ -22,7 +22,7 @@ Before using this extension, you need to:
 
 2. Pull the DeepSeek model:
    ```bash
-   ollama pull deepseek-coder:latest
+   ollama pull deepseek-r1:1.5b
    ```
 
 ## Quick Start
@@ -39,7 +39,7 @@ Before using this extension, you need to:
 
 3. Use the Extension
    - Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
-   - Type `DeepSeek: Start Chat`
+   - Type `Run DeepSeek Offline`
    - Or click the DeepSeek icon in the sidebar
 
 ## System Requirements
@@ -62,7 +62,7 @@ ollama serve
 ollama list
 
 # Pull model if not installed
-ollama pull deepseek-coder:latest
+ollama pull deepseek-r1:1.5b
 ```
 
 Slow Initial Response:
@@ -74,21 +74,10 @@ No Response from Extension:
 2. Restart VS Code
 3. Check VS Code logs for errors
 
-## Configuration
-
-```json
-{
-    "deepseek.model": "deepseek-coder:latest",
-    "deepseek.maxTokens": 2048,
-    "deepseek.temperature": 0.7
-}
-```
-
 ## Usage Tips
 
 1. Keep Ollama running in the background
-2. Use keyboard shortcut `Ctrl+Shift+D` / `Cmd+Shift+D` for quick access
-3. First interaction might be slower as the model loads
+2. First interaction might be slower as the model loads
 
 ## Contributing
 

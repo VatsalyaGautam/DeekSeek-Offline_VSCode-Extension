@@ -495,7 +495,6 @@ function getWebviewContent(): string {
 
 1. Install Ollama: npm install ollama -g
 2. Run the Model: ollama run deepseek-r1:1.5b
-3. Serve the Model: ollama serve
 
 Keep Ollama running while using this extension!
                     "
