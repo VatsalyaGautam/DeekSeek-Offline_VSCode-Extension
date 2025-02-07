@@ -35,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
   });
 }
 function getWebviewContent(): string {
-  return  `
+  return  /*html*/`
  
 <!DOCTYPE html>
 <html lang="en">
@@ -619,7 +619,7 @@ Keep Ollama running while using this extension!
             heightMeasurer.remove();
         });
 
-        // Initial status
+        // Initial statusz
         setTimeout(() => {
             statusText.textContent = 'AI Assistant Ready';
             statusIndicator.style.background = 'var(--github-success)';
